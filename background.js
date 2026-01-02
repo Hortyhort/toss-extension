@@ -98,11 +98,29 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     }
   });
 
-  // Open the LLM in a new tab
-  chrome.tabs.create({ url: llm.url });
+  // Check for existing tab or open new one
+  await openOrReuseTab(llm.url);
 });
 
-// Listen for content script ready
+// Open existing LLM tab or create new one
+async function openOrReuseTab(url) {
+  const hostname = new URL(url).hostname;
+
+  // Find existing tabs matching this LLM
+  const tabs = await chrome.tabs.query({ url: `https://${hostname}/*` });
+
+  if (tabs.length > 0) {
+    // Reuse existing tab - update URL and focus it
+    const tab = tabs[0];
+    await chrome.tabs.update(tab.id, { url: url, active: true });
+    await chrome.windows.update(tab.windowId, { focused: true });
+  } else {
+    // No existing tab, create new one
+    chrome.tabs.create({ url: url });
+  }
+}
+
+// Listen for messages from content script
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "content-ready") {
     // Send any pending toss to the content script
@@ -116,6 +134,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
     });
     return true; // Keep channel open for async response
+  }
+
+  if (message.type === "open-llm") {
+    // Open or reuse existing LLM tab
+    openOrReuseTab(message.url);
   }
 });
 
@@ -156,8 +179,8 @@ chrome.commands.onCommand.addListener(async (command) => {
       }
     });
 
-    // Open the LLM in a new tab
-    chrome.tabs.create({ url: llm.url });
+    // Check for existing tab or open new one
+    await openOrReuseTab(llm.url);
   } catch (e) {
     console.error("Toss: Could not get selection", e);
   }

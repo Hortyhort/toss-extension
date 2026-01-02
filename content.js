@@ -381,7 +381,7 @@ function showTossMenu(button, content) {
       e.stopPropagation();
       menu.remove();
 
-      // Store the toss data
+      // Store the toss data and open via background script (reuses existing tabs)
       await chrome.storage.local.set({
         pendingToss: {
           text: content,
@@ -395,8 +395,8 @@ function showTossMenu(button, content) {
         }
       });
 
-      // Open the LLM
-      window.open(llm.url, '_blank');
+      // Ask background script to open (reuses existing tabs)
+      chrome.runtime.sendMessage({ type: "open-llm", url: llm.url });
     });
     menu.appendChild(item);
   });
