@@ -201,18 +201,30 @@ async function fillAndSubmit(hostname, text) {
 
   if (input.tagName === "TEXTAREA" || input.tagName === "INPUT") {
     // Clear any existing text first
-    input.value = '';
-
-    // For React apps like ChatGPT, use native setter to trigger proper events
     const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
       input.tagName === "TEXTAREA" ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype,
       'value'
     ).set;
+    nativeInputValueSetter.call(input, '');
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+
+    // Small delay after clearing
+    await sleep(50);
+
+    // Set the new value
     nativeInputValueSetter.call(input, text);
 
-    // Dispatch input event that React will recognize
-    input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
-    input.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
+    // Dispatch multiple event types for maximum compatibility with React
+    input.dispatchEvent(new InputEvent('input', {
+      bubbles: true,
+      cancelable: true,
+      inputType: 'insertText',
+      data: text
+    }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+
+    // Also try triggering a keyup to help React recognize the change
+    input.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
   } else if (input.getAttribute('contenteditable') === 'true' || input.classList.contains('ProseMirror')) {
     // ContentEditable (Claude, some others)
     input.focus();
