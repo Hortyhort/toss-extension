@@ -160,14 +160,9 @@ function findSubmitButton(hostname) {
            document.querySelector('form button[type="button"]');
   }
 
-  // ChatGPT - find the send button
+  // ChatGPT - return special marker to skip auto-submit entirely
   if (hostname.includes("chat.openai.com") || hostname.includes("chatgpt.com")) {
-    // Try multiple selectors for ChatGPT's send button
-    return document.querySelector('[data-testid="send-button"]') ||
-           document.querySelector('button[data-testid="send-button"]') ||
-           document.querySelector('form button[type="submit"]') ||
-           document.querySelector('button[aria-label*="Send"]') ||
-           document.querySelector('button[aria-label*="send"]');
+    return "SKIP_SUBMIT";
   }
 
   // Gemini - use Enter key (more reliable, avoids hitting stop button)
@@ -244,26 +239,41 @@ async function fillAndSubmit(hostname, text) {
   }
 
   // Delay to let React/frameworks process the input
-  await sleep(300);
+  const isChatGPT = hostname.includes("chatgpt.com") || hostname.includes("openai.com");
+  await sleep(isChatGPT ? 500 : 300);
 
   let submitButton = findSubmitButton(hostname);
 
-  // If we found a button, wait for it to be enabled (for React apps like Claude)
+  // For ChatGPT, keep trying to find the button (it may render late)
+  if (!submitButton && isChatGPT) {
+    const findStart = Date.now();
+    while (!submitButton && Date.now() - findStart < 3000) {
+      await sleep(200);
+      submitButton = findSubmitButton(hostname);
+    }
+  }
+
+  // If we found a button, wait for it to be enabled
   if (submitButton && submitButton.disabled) {
     const buttonWaitStart = Date.now();
-    while (submitButton.disabled && Date.now() - buttonWaitStart < 2000) {
+    while (submitButton.disabled && Date.now() - buttonWaitStart < 3000) {
       await sleep(100);
       submitButton = findSubmitButton(hostname);
       if (!submitButton) break;
     }
   }
 
+  // ChatGPT: skip auto-submit entirely (causes blank responses)
+  if (submitButton === "SKIP_SUBMIT") {
+    showNotification("Text filled - press Enter to send");
+    return;
+  }
+
   if (submitButton && !submitButton.disabled) {
-    // Multiple click attempts for stubborn buttons
+    // Single click - multiple clicks can cause rendering issues
     submitButton.focus();
+    await sleep(50);
     submitButton.click();
-    await sleep(100);
-    submitButton.dispatchEvent(new MouseEvent('click', { bubbles: true }));
     showNotification("Sent!");
   } else {
     // Try pressing Enter as fallback
@@ -271,21 +281,36 @@ async function fillAndSubmit(hostname, text) {
       input.focus();
       await sleep(100);
 
-      // Try multiple Enter event types for compatibility
-      const events = [
-        new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true }),
-        new KeyboardEvent('keypress', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true }),
-        new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true })
-      ];
+      // Create Enter event with all properties React might check
+      const enterEvent = new KeyboardEvent('keydown', {
+        key: 'Enter',
+        code: 'Enter',
+        keyCode: 13,
+        which: 13,
+        charCode: 13,
+        bubbles: true,
+        cancelable: true,
+        composed: true,
+        view: window
+      });
 
-      for (const event of events) {
-        input.dispatchEvent(event);
-        await sleep(50);
-      }
+      input.dispatchEvent(enterEvent);
+      await sleep(50);
 
-      // Also try submitting the form directly if there is one
+      // Also dispatch on the form if there is one
       const form = input.closest('form');
       if (form) {
+        form.dispatchEvent(new KeyboardEvent('keydown', {
+          key: 'Enter',
+          code: 'Enter',
+          keyCode: 13,
+          which: 13,
+          bubbles: true,
+          cancelable: true,
+          composed: true,
+          view: window
+        }));
+        await sleep(50);
         form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
       }
 
