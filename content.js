@@ -162,10 +162,16 @@ async function fillAndSubmit(hostname, text) {
 
   // Fill the input
   if (input.tagName === "TEXTAREA" || input.tagName === "INPUT") {
-    // Regular input/textarea
-    input.value = text;
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new Event('change', { bubbles: true }));
+    // For React apps like ChatGPT, use native setter to trigger proper events
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+      input.tagName === "TEXTAREA" ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype,
+      'value'
+    ).set;
+    nativeInputValueSetter.call(input, text);
+
+    // Dispatch input event that React will recognize
+    input.dispatchEvent(new Event('input', { bubbles: true, composed: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true, composed: true }));
   } else if (input.getAttribute('contenteditable') === 'true' || input.classList.contains('ProseMirror')) {
     // ContentEditable (Claude, some others)
     input.focus();
