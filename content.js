@@ -24,7 +24,6 @@ setupCopyButtonToss();
   const { text, llm } = response.toss;
   const hostname = window.location.hostname;
 
-  console.log("Toss: Loaded for", hostname, "with text:", text.substring(0, 50) + "...");
 
   // Wait for the page to be ready, then fill
   await waitForPageReady(hostname);
@@ -45,7 +44,6 @@ function waitForPageReady(hostname) {
       }
 
       if (Date.now() - startTime > maxWait) {
-        console.log("Toss: Timeout waiting for input");
         resolve();
         return;
       }
@@ -146,7 +144,6 @@ async function fillAndSubmit(hostname, text) {
   const input = findInputElement(hostname);
 
   if (!input) {
-    console.log("Toss: Could not find input element");
     // Fallback: copy to clipboard
     await navigator.clipboard.writeText(text);
     showNotification("Text copied - paste with Cmd+V");
@@ -179,7 +176,6 @@ async function fillAndSubmit(hostname, text) {
 
   const submitButton = findSubmitButton(hostname);
 
-  console.log("Toss: Submit button found:", submitButton);
 
   if (submitButton && !submitButton.disabled) {
     // Multiple click attempts for stubborn buttons
@@ -224,6 +220,19 @@ function sleep(ms) {
 }
 
 function showNotification(message) {
+  // Add animation style once
+  if (!document.getElementById('toss-notification-style')) {
+    const style = document.createElement('style');
+    style.id = 'toss-notification-style';
+    style.textContent = `
+      @keyframes toss-fade-in {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   // Create a small toast notification
   const toast = document.createElement('div');
   toast.textContent = message;
@@ -231,27 +240,17 @@ function showNotification(message) {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: #22c55e;
-    color: #0a0a0a;
+    background: linear-gradient(135deg, #8B5CF6, #06B6D4);
+    color: #fff;
     padding: 12px 20px;
     border-radius: 8px;
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
     font-size: 14px;
     font-weight: 500;
     z-index: 999999;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 12px rgba(139,92,246,0.3);
     animation: toss-fade-in 0.2s ease-out;
   `;
-
-  // Add animation
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes toss-fade-in {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  `;
-  document.head.appendChild(style);
   document.body.appendChild(toast);
 
   // Remove after 2 seconds
@@ -260,39 +259,6 @@ function showNotification(message) {
     toast.style.transition = 'opacity 0.2s';
     setTimeout(() => toast.remove(), 200);
   }, 2000);
-}
-
-// Find copy buttons on the page
-function findCopyButtons() {
-  const hostname = window.location.hostname;
-  let buttons = [];
-
-  // Claude - copy buttons in message actions
-  if (hostname.includes("claude.ai")) {
-    buttons = document.querySelectorAll('button[aria-label="Copy"]') || [];
-  }
-
-  // ChatGPT - copy buttons
-  if (hostname.includes("chat.openai.com") || hostname.includes("chatgpt.com")) {
-    buttons = document.querySelectorAll('button[aria-label="Copy"]') || [];
-  }
-
-  // Gemini
-  if (hostname.includes("gemini.google.com")) {
-    buttons = document.querySelectorAll('button[aria-label="Copy"]') || [];
-  }
-
-  // Perplexity
-  if (hostname.includes("perplexity.ai")) {
-    buttons = document.querySelectorAll('button[aria-label="Copy"]') || [];
-  }
-
-  // Grok
-  if (hostname.includes("grok.com")) {
-    buttons = document.querySelectorAll('button[aria-label="Copy"]') || [];
-  }
-
-  return Array.from(buttons);
 }
 
 // Get the content associated with a copy button
@@ -374,11 +340,11 @@ function showTossMenu(button, content) {
     top: ${rect.bottom + 5}px;
     left: ${rect.left}px;
     background: #1a1a1a;
-    border: 1px solid #333;
+    border: 1px solid #8B5CF6;
     border-radius: 8px;
     padding: 4px;
     z-index: 999999;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    box-shadow: 0 4px 12px rgba(139,92,246,0.3);
     font-family: -apple-system, BlinkMacSystemFont, sans-serif;
   `;
 
@@ -408,7 +374,7 @@ function showTossMenu(button, content) {
       white-space: nowrap;
     `;
     item.addEventListener('mouseenter', () => {
-      item.style.background = '#333';
+      item.style.background = 'linear-gradient(135deg, rgba(139,92,246,0.2), rgba(6,182,212,0.2))';
     });
     item.addEventListener('mouseleave', () => {
       item.style.background = 'transparent';
@@ -477,11 +443,8 @@ function setupCopyButtonToss() {
     const button = e.target.closest('button');
 
     if (button && isCopyButton(button)) {
-      console.log('Toss: Copy button detected', button);
-
       // Get the content first
       const content = getContentForCopyButton(button);
-      console.log('Toss: Content found:', content ? content.substring(0, 50) + '...' : 'none');
 
       if (content) {
         // Show toss menu after a tiny delay (let the copy happen first)
