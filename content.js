@@ -24,7 +24,6 @@ setupCopyButtonToss();
   const { text, llm } = response.toss;
   const hostname = window.location.hostname;
 
-
   // Wait for the page to be ready, then fill
   await waitForPageReady(hostname);
   await fillAndSubmit(hostname, text);
@@ -175,7 +174,6 @@ async function fillAndSubmit(hostname, text) {
   await sleep(300);
 
   const submitButton = findSubmitButton(hostname);
-
 
   if (submitButton && !submitButton.disabled) {
     // Multiple click attempts for stubborn buttons

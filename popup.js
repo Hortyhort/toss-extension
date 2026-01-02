@@ -29,11 +29,25 @@ chrome.storage.local.get(["lastToss"], (result) => {
     const templateInfo = lastToss.template && lastToss.template !== "Just send"
       ? ` (${lastToss.template})`
       : "";
-    container.innerHTML = `
-      <div class="last-toss-label">Sent to ${lastToss.llm}${templateInfo}</div>
-      <div class="last-toss-text">"${lastToss.text}"</div>
-      <div class="last-toss-meta">${timeAgo}</div>
-    `;
+
+    // Clear and build safely to avoid XSS
+    container.innerHTML = '';
+
+    const label = document.createElement('div');
+    label.className = 'last-toss-label';
+    label.textContent = `Sent to ${lastToss.llm}${templateInfo}`;
+
+    const text = document.createElement('div');
+    text.className = 'last-toss-text';
+    text.textContent = `"${lastToss.text}"`;
+
+    const meta = document.createElement('div');
+    meta.className = 'last-toss-meta';
+    meta.textContent = timeAgo;
+
+    container.appendChild(label);
+    container.appendChild(text);
+    container.appendChild(meta);
   }
 });
 
