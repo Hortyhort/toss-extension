@@ -126,9 +126,11 @@ function findSubmitButton(hostname) {
            document.querySelector('form button[type="button"]');
   }
 
-  // ChatGPT - use Enter key (more reliable)
+  // ChatGPT - find and click the send button
   if (hostname.includes("chat.openai.com") || hostname.includes("chatgpt.com")) {
-    return null;
+    return document.querySelector('button[data-testid="send-button"]') ||
+           document.querySelector('button[aria-label="Send prompt"]') ||
+           document.querySelector('form button[type="submit"]');
   }
 
   // Gemini - use Enter key (more reliable, avoids hitting stop button)
@@ -187,8 +189,9 @@ async function fillAndSubmit(hostname, text) {
     }
   }
 
-  // Small delay then submit
-  await sleep(300);
+  // Delay to let React/frameworks process the input (longer for ChatGPT)
+  const isReactApp = hostname.includes("chatgpt.com") || hostname.includes("openai.com");
+  await sleep(isReactApp ? 500 : 300);
 
   const submitButton = findSubmitButton(hostname);
 
