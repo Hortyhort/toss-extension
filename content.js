@@ -160,11 +160,9 @@ function findSubmitButton(hostname) {
            document.querySelector('form button[type="button"]');
   }
 
-  // ChatGPT - find and click the send button
+  // ChatGPT - use Enter key (button click doesn't work reliably)
   if (hostname.includes("chat.openai.com") || hostname.includes("chatgpt.com")) {
-    return document.querySelector('button[data-testid="send-button"]') ||
-           document.querySelector('button[aria-label="Send prompt"]') ||
-           document.querySelector('form button[type="submit"]');
+    return null;
   }
 
   // Gemini - use Enter key (more reliable, avoids hitting stop button)

@@ -7,6 +7,15 @@ const LLM_URLS = {
   perplexity: "https://www.perplexity.ai/"
 };
 
+// Map display names to keys
+const LLM_NAME_TO_KEY = {
+  "Claude": "claude",
+  "ChatGPT": "chatgpt",
+  "Gemini": "gemini",
+  "Grok": "grok",
+  "Perplexity": "perplexity"
+};
+
 // Quick launch buttons
 document.querySelectorAll(".llm-button").forEach(button => {
   button.addEventListener("click", () => {
@@ -35,7 +44,26 @@ chrome.storage.local.get(["lastToss"], (result) => {
 
     const label = document.createElement('div');
     label.className = 'last-toss-label';
-    label.textContent = `Sent to ${lastToss.llm}${templateInfo}`;
+
+    // Make LLM name a clickable link
+    const llmKey = LLM_NAME_TO_KEY[lastToss.llm];
+    if (llmKey && LLM_URLS[llmKey]) {
+      label.textContent = 'Sent to ';
+      const link = document.createElement('a');
+      link.textContent = lastToss.llm;
+      link.href = '#';
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        chrome.tabs.create({ url: LLM_URLS[llmKey] });
+        window.close();
+      });
+      label.appendChild(link);
+      if (templateInfo) {
+        label.appendChild(document.createTextNode(templateInfo));
+      }
+    } else {
+      label.textContent = `Sent to ${lastToss.llm}${templateInfo}`;
+    }
 
     const text = document.createElement('div');
     text.className = 'last-toss-text';
