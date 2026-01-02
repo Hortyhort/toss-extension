@@ -19,10 +19,44 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const hostname = window.location.hostname;
     // Clear pending toss from storage since we're handling it now
     chrome.storage.local.remove("pendingToss");
-    // Fill and submit directly with the provided data
-    fillAndSubmit(hostname, message.toss.text);
+    // Wait for page to be ready, then fill and submit
+    waitForInputReady(hostname).then(() => {
+      fillAndSubmit(hostname, message.toss.text);
+    });
   }
 });
+
+// Wait for input element to be ready (not disabled, not during response)
+function waitForInputReady(hostname) {
+  return new Promise((resolve) => {
+    const maxWait = 10000;
+    const startTime = Date.now();
+
+    const checkReady = () => {
+      const input = findInputElement(hostname);
+
+      // Check if input exists and is usable
+      if (input) {
+        const isDisabled = input.disabled || input.getAttribute('aria-disabled') === 'true';
+        const isReadOnly = input.readOnly;
+
+        if (!isDisabled && !isReadOnly) {
+          resolve();
+          return;
+        }
+      }
+
+      if (Date.now() - startTime > maxWait) {
+        resolve(); // Timeout, try anyway
+        return;
+      }
+
+      setTimeout(checkReady, 200);
+    };
+
+    checkReady();
+  });
+}
 
 (async function() {
   // Check if we have a pending toss
@@ -162,8 +196,13 @@ async function fillAndSubmit(hostname, text) {
     return;
   }
 
-  // Fill the input
+  // Focus and fill the input
+  input.focus();
+
   if (input.tagName === "TEXTAREA" || input.tagName === "INPUT") {
+    // Clear any existing text first
+    input.value = '';
+
     // For React apps like ChatGPT, use native setter to trigger proper events
     const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
       input.tagName === "TEXTAREA" ? window.HTMLTextAreaElement.prototype : window.HTMLInputElement.prototype,
