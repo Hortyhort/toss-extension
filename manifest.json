@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Toss",
   "description": "Send selected text to any LLM in one click",
-  "version": "1.3.8",
+  "version": "1.3.9",
   "permissions": ["contextMenus", "storage", "scripting"],
   "host_permissions": [
     "https://claude.ai/*",

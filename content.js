@@ -241,16 +241,15 @@ async function fillAndSubmit(hostname, text) {
   // Delay to let React/frameworks process the input
   await sleep(300);
 
-  // For ChatGPT, wait for the send button to become enabled
-  const isReactApp = hostname.includes("chatgpt.com") || hostname.includes("openai.com");
   let submitButton = findSubmitButton(hostname);
 
-  if (isReactApp && submitButton) {
-    // Wait up to 2 seconds for button to be enabled
+  // If we found a button, wait for it to be enabled (for React apps like Claude)
+  if (submitButton && submitButton.disabled) {
     const buttonWaitStart = Date.now();
     while (submitButton.disabled && Date.now() - buttonWaitStart < 2000) {
       await sleep(100);
       submitButton = findSubmitButton(hostname);
+      if (!submitButton) break;
     }
   }
 
