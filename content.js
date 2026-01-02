@@ -66,7 +66,7 @@ function waitForInputReady(hostname) {
     return; // No pending toss
   }
 
-  const { text, llm } = response.toss;
+  const { text } = response.toss;
   const hostname = window.location.hostname;
 
   // Wait for the page to be ready, then fill
@@ -239,18 +239,14 @@ async function fillAndSubmit(hostname, text) {
   }
 
   // Delay to let React/frameworks process the input
-  const isChatGPT = hostname.includes("chatgpt.com") || hostname.includes("openai.com");
-  await sleep(isChatGPT ? 500 : 300);
+  await sleep(300);
 
   let submitButton = findSubmitButton(hostname);
 
-  // For ChatGPT, keep trying to find the button (it may render late)
-  if (!submitButton && isChatGPT) {
-    const findStart = Date.now();
-    while (!submitButton && Date.now() - findStart < 3000) {
-      await sleep(200);
-      submitButton = findSubmitButton(hostname);
-    }
+  // ChatGPT: skip auto-submit entirely (causes blank responses)
+  if (submitButton === "SKIP_SUBMIT") {
+    showNotification("Text filled - press Enter to send");
+    return;
   }
 
   // If we found a button, wait for it to be enabled
@@ -261,12 +257,6 @@ async function fillAndSubmit(hostname, text) {
       submitButton = findSubmitButton(hostname);
       if (!submitButton) break;
     }
-  }
-
-  // ChatGPT: skip auto-submit entirely (causes blank responses)
-  if (submitButton === "SKIP_SUBMIT") {
-    showNotification("Text filled - press Enter to send");
-    return;
   }
 
   if (submitButton && !submitButton.disabled) {
