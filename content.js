@@ -240,11 +240,21 @@ async function fillAndSubmit(hostname, text) {
     }
   }
 
-  // Delay to let React/frameworks process the input (longer for ChatGPT)
-  const isReactApp = hostname.includes("chatgpt.com") || hostname.includes("openai.com");
-  await sleep(isReactApp ? 500 : 300);
+  // Delay to let React/frameworks process the input
+  await sleep(300);
 
-  const submitButton = findSubmitButton(hostname);
+  // For ChatGPT, wait for the send button to become enabled
+  const isReactApp = hostname.includes("chatgpt.com") || hostname.includes("openai.com");
+  let submitButton = findSubmitButton(hostname);
+
+  if (isReactApp && submitButton) {
+    // Wait up to 2 seconds for button to be enabled
+    const buttonWaitStart = Date.now();
+    while (submitButton.disabled && Date.now() - buttonWaitStart < 2000) {
+      await sleep(100);
+      submitButton = findSubmitButton(hostname);
+    }
+  }
 
   if (submitButton && !submitButton.disabled) {
     // Multiple click attempts for stubborn buttons
