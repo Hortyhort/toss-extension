@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 280px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #0a0a0a;
+      color: #fafafa;
+      padding: 16px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .logo {
+      width: 24px;
+      height: 24px;
+      background: #22c55e;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 12px;
+      color: #0a0a0a;
+    }
+
+    .title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .subtitle {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 16px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .llm-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .llm-button {
+      padding: 12px;
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      color: #fafafa;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .llm-button:hover {
+      border-color: #22c55e;
+      background: #1a1a1a;
+    }
+
+    .last-toss {
+      padding: 12px;
+      background: #111;
+      border: 1px solid #1a1a1a;
+      border-radius: 8px;
+      font-size: 12px;
+    }
+
+    .last-toss-label {
+      color: #666;
+      margin-bottom: 4px;
+    }
+
+    .last-toss-text {
+      color: #a1a1a1;
+      word-break: break-word;
+    }
+
+    .last-toss-meta {
+      color: #444;
+      font-size: 11px;
+      margin-top: 8px;
+    }
+
+    .empty {
+      color: #444;
+      font-size: 12px;
+      text-align: center;
+      padding: 16px;
+    }
+
+    .tip {
+      font-size: 11px;
+      color: #444;
+      text-align: center;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">T</div>
+    <span class="title">Toss</span>
+  </div>
+
+  <p class="subtitle">Select text, right-click, toss to any LLM</p>
+
+  <div class="section-title">Quick Launch</div>
+  <div class="llm-grid">
+    <button class="llm-button" data-llm="claude">Claude</button>
+    <button class="llm-button" data-llm="chatgpt">ChatGPT</button>
+    <button class="llm-button" data-llm="gemini">Gemini</button>
+    <button class="llm-button" data-llm="grok">Grok</button>
+    <button class="llm-button" data-llm="perplexity">Perplexity</button>
+  </div>
+
+  <div class="section-title">Last Toss</div>
+  <div id="last-toss" class="last-toss">
+    <div class="empty">No tosses yet</div>
+  </div>
+
+  <p class="tip">Tip: Select text on any page and right-click</p>
+
+  <script src="popup.js"></script>
+</body>
+</html>

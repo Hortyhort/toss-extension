@@ -1,0 +1,77 @@
+{
+  "manifest_version": 3,
+  "name": "Toss",
+  "description": "Send selected text to any LLM in one click",
+  "version": "1.1.0",
+  "permissions": ["contextMenus", "storage", "scripting"],
+  "host_permissions": [
+    "https://claude.ai/*",
+    "https://chat.openai.com/*",
+    "https://chatgpt.com/*",
+    "https://gemini.google.com/*",
+    "https://www.perplexity.ai/*",
+    "https://grok.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://claude.ai/*",
+        "https://chat.openai.com/*",
+        "https://chatgpt.com/*",
+        "https://gemini.google.com/*",
+        "https://www.perplexity.ai/*",
+        "https://grok.com/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png"
+    }
+  },
+  "commands": {
+    "toss-claude": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+C",
+        "mac": "Command+Shift+C"
+      },
+      "description": "Toss to Claude"
+    },
+    "toss-chatgpt": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+O",
+        "mac": "Command+Shift+O"
+      },
+      "description": "Toss to ChatGPT (OpenAI)"
+    },
+    "toss-gemini": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+G",
+        "mac": "Command+Shift+G"
+      },
+      "description": "Toss to Gemini"
+    },
+    "toss-grok": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+X",
+        "mac": "Command+Shift+X"
+      },
+      "description": "Toss to Grok (X)"
+    },
+    "toss-perplexity": {
+      "description": "Toss to Perplexity"
+    }
+  }
+}
