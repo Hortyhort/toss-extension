@@ -83,13 +83,16 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   // Apply template prefix
   const finalText = template.prefix + selectedText;
 
+  // Toss data
+  const tossData = {
+    text: finalText,
+    llm: llmKey,
+    timestamp: Date.now()
+  };
+
   // Store the text to be pasted
   await chrome.storage.local.set({
-    pendingToss: {
-      text: finalText,
-      llm: llmKey,
-      timestamp: Date.now()
-    },
+    pendingToss: tossData,
     lastToss: {
       text: selectedText.substring(0, 100) + (selectedText.length > 100 ? "..." : ""),
       llm: llm.name,
@@ -99,11 +102,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   });
 
   // Check for existing tab or open new one
-  await openOrReuseTab(llm.url);
+  await openOrReuseTab(llm.url, tossData);
 });
 
 // Open existing LLM tab or create new one
-async function openOrReuseTab(url) {
+async function openOrReuseTab(url, tossData) {
   const hostname = new URL(url).hostname;
 
   // Find existing tabs matching this LLM
@@ -115,8 +118,8 @@ async function openOrReuseTab(url) {
     await chrome.tabs.update(tab.id, { active: true });
     await chrome.windows.update(tab.windowId, { focused: true });
 
-    // Send message to content script to paste the pending toss
-    chrome.tabs.sendMessage(tab.id, { type: "do-toss" });
+    // Send toss data directly to content script
+    chrome.tabs.sendMessage(tab.id, { type: "do-toss", toss: tossData });
   } else {
     // No existing tab, create new one
     chrome.tabs.create({ url: url });
@@ -140,8 +143,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 
   if (message.type === "open-llm") {
-    // Open or reuse existing LLM tab
-    openOrReuseTab(message.url);
+    // Get the pending toss data and open/reuse tab
+    chrome.storage.local.get(["pendingToss"], (result) => {
+      openOrReuseTab(message.url, result.pendingToss);
+    });
   }
 });
 
@@ -168,13 +173,16 @@ chrome.commands.onCommand.addListener(async (command) => {
       return; // No text selected
     }
 
+    // Toss data
+    const tossData = {
+      text: selectedText,
+      llm: llmKey,
+      timestamp: Date.now()
+    };
+
     // Store the text to be pasted
     await chrome.storage.local.set({
-      pendingToss: {
-        text: selectedText,
-        llm: llmKey,
-        timestamp: Date.now()
-      },
+      pendingToss: tossData,
       lastToss: {
         text: selectedText.substring(0, 100) + (selectedText.length > 100 ? "..." : ""),
         llm: llm.name,
@@ -183,7 +191,7 @@ chrome.commands.onCommand.addListener(async (command) => {
     });
 
     // Check for existing tab or open new one
-    await openOrReuseTab(llm.url);
+    await openOrReuseTab(llm.url, tossData);
   } catch (e) {
     console.error("Toss: Could not get selection", e);
   }

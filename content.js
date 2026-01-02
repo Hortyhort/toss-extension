@@ -15,28 +15,14 @@ setupCopyButtonToss();
 
 // Listen for "do-toss" message from background script (for tab reuse)
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "do-toss") {
-    executePendingToss();
+  if (message.type === "do-toss" && message.toss) {
+    const hostname = window.location.hostname;
+    // Clear pending toss from storage since we're handling it now
+    chrome.storage.local.remove("pendingToss");
+    // Fill and submit directly with the provided data
+    fillAndSubmit(hostname, message.toss.text);
   }
 });
-
-// Execute a pending toss (called on page load or via message)
-async function executePendingToss() {
-  const result = await chrome.storage.local.get(["pendingToss"]);
-
-  if (!result.pendingToss) {
-    return; // No pending toss
-  }
-
-  const { text, llm } = result.pendingToss;
-  const hostname = window.location.hostname;
-
-  // Clear the pending toss
-  await chrome.storage.local.remove("pendingToss");
-
-  // Fill and submit
-  await fillAndSubmit(hostname, text);
-}
 
 (async function() {
   // Check if we have a pending toss
