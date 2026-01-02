@@ -110,10 +110,13 @@ async function openOrReuseTab(url) {
   const tabs = await chrome.tabs.query({ url: `https://${hostname}/*` });
 
   if (tabs.length > 0) {
-    // Reuse existing tab - update URL and focus it
+    // Reuse existing tab - just focus it, don't navigate (preserves conversation)
     const tab = tabs[0];
-    await chrome.tabs.update(tab.id, { url: url, active: true });
+    await chrome.tabs.update(tab.id, { active: true });
     await chrome.windows.update(tab.windowId, { focused: true });
+
+    // Send message to content script to paste the pending toss
+    chrome.tabs.sendMessage(tab.id, { type: "do-toss" });
   } else {
     // No existing tab, create new one
     chrome.tabs.create({ url: url });
