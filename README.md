@@ -2,6 +2,12 @@
 
 Send selected text to any LLM in one click. No more copy-paste-tab-paste-enter.
 
+## Screenshots
+
+| Popup | Right-Click Menu |
+|-------|------------------|
+| ![Popup](screenshots/toss-extension-ss1.png) | ![Context Menu](screenshots/toss-extension-ss2.png) |
+
 ## Features
 
 - **Right-click to toss** - Select text anywhere, right-click, send to your chosen LLM
