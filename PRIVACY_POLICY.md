@@ -12,15 +12,21 @@ Toss is a browser extension that helps you send selected text to AI assistants. 
 Toss stores the following data in your browser's local storage (never sent anywhere):
 - Your most recent "toss" (the text you sent and which LLM you sent it to)
 - Your auto-send preference
-- These are only used to display "Last Toss" and your settings in the extension popup
+- Your prompt packs, custom templates, and routing rules
+- Compare sessions and captured responses (if you use Compare mode)
+- These are only used to power the extension UI and settings
+
+## On-Page Access
+Toss runs on web pages to show the selection toolbar and command palette. It does not transmit page content anywhere until you explicitly send selected text to an LLM.
 
 ## Permissions Explained
 Toss requires the following permissions:
 
 - **contextMenus**: To add "Toss to..." to your right-click menu
-- **storage**: To remember your last toss (stored locally only)
+- **storage**: To save last toss, settings, and compare responses locally
 - **scripting**: To paste and send text on LLM websites
 - **activeTab**: To read selected text for keyboard shortcuts on the active page
+- **Site access (all websites)**: To show the selection toolbar and palette
 - **Host permissions for LLM sites**: Required to auto-fill and submit text on Claude, ChatGPT, Gemini, Grok, and Perplexity
 
 ## Third-Party Services

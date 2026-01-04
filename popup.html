@@ -191,6 +191,20 @@
       text-align: center;
       margin-top: 12px;
     }
+
+    .settings-link {
+      display: block;
+      text-align: center;
+      margin-top: 10px;
+      font-size: 11px;
+      color: #8B5CF6;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .settings-link:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -228,7 +242,9 @@
   </div>
 
   <p class="tip">Tip: Select text on any page and right-click</p>
+  <a class="settings-link" id="open-settings" href="#">Advanced settings</a>
 
+  <script src="shared.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

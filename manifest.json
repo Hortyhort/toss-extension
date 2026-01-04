@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Toss",
   "description": "Send selected text to any LLM in one click",
-  "version": "1.4.6",
+  "version": "1.5.0",
   "permissions": ["contextMenus", "storage", "scripting", "activeTab"],
   "host_permissions": [
     "https://claude.ai/*",
@@ -25,7 +25,12 @@
         "https://www.perplexity.ai/*",
         "https://grok.com/*"
       ],
-      "js": ["content.js"],
+      "js": ["shared.js", "content.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["<all_urls>"],
+      "js": ["shared.js", "overlay.js"],
       "run_at": "document_idle"
     }
   ],
@@ -41,6 +46,7 @@
       "48": "icons/icon-48.png"
     }
   },
+  "options_page": "options.html",
   "commands": {
     "toss-claude": {
       "suggested_key": {
@@ -72,6 +78,9 @@
     },
     "toss-perplexity": {
       "description": "Toss to Perplexity"
+    },
+    "toss-palette": {
+      "description": "Open Toss palette"
     }
   }
 }

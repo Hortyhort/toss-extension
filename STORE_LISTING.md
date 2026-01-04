@@ -8,8 +8,8 @@ Toss lets you send any text to your favorite AI assistant in one click. No more 
 
 HOW IT WORKS
 1. Select any text on any webpage
-2. Right-click and choose "Toss to..."
-3. Pick your LLM and prompt template
+2. Right-click, use the floating Toss button, or open the command palette
+3. Pick your LLM and prompt template (or Compare mode)
 4. Text is pasted; if auto-send is on, it submits where supported (ChatGPT requires Enter)
 
 SUPPORTED LLMs
@@ -27,6 +27,7 @@ PROMPT TEMPLATES
 - Improve writing
 - Explain code
 - Fix errors
+- Writer, Developer, and Student prompt packs
 
 KEYBOARD SHORTCUTS
 - Cmd/Ctrl+Shift+C → Claude
@@ -36,9 +37,19 @@ KEYBOARD SHORTCUTS
 - Set your own for Perplexity in chrome://extensions/shortcuts
 - Toggle auto-send from the extension popup
 
+SMART ROUTING
+- Profiles: Research, Developer, Writer
+- Custom rules by domain and selection type
+
+COMPARE MODE
+- Send to multiple LLMs at once
+- Capture responses side-by-side
+
 PRIVACY
 - Toss does not send data to its own servers
-- Selected text is sent directly to the LLM you choose
+- Selected text is sent only to the LLM you choose, when you activate Toss
+- Runs on all websites to show the selection toolbar and palette
+- Stores settings and compare responses locally
 - Privacy policy: https://github.com/Hortyhort/toss-extension/blob/main/PRIVACY_POLICY.md
 - Open source: https://github.com/Hortyhort/toss-extension
 

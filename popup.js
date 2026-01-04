@@ -1,20 +1,10 @@
-// LLM URLs (duplicated from background.js for simplicity)
-const LLM_URLS = {
-  claude: "https://claude.ai/new",
-  chatgpt: "https://chatgpt.com/",
-  gemini: "https://gemini.google.com/app",
-  grok: "https://grok.com/",
-  perplexity: "https://www.perplexity.ai/"
-};
+const LLM_URLS = Object.fromEntries(
+  Object.entries(LLM_DEFS).map(([key, llm]) => [key, llm.url])
+);
 
-// Map display names to keys
-const LLM_NAME_TO_KEY = {
-  "Claude": "claude",
-  "ChatGPT": "chatgpt",
-  "Gemini": "gemini",
-  "Grok": "grok",
-  "Perplexity": "perplexity"
-};
+const LLM_NAME_TO_KEY = Object.fromEntries(
+  Object.entries(LLM_DEFS).map(([key, llm]) => [llm.name, key])
+);
 
 // Quick launch buttons
 document.querySelectorAll(".llm-button").forEach(button => {
@@ -58,7 +48,7 @@ chrome.storage.local.get(["lastToss"], (result) => {
     label.className = 'last-toss-label';
 
     // Make LLM name a clickable link
-    const llmKey = LLM_NAME_TO_KEY[lastToss.llm];
+    const llmKey = lastToss.llmKey || LLM_NAME_TO_KEY[lastToss.llm];
     if (llmKey && LLM_URLS[llmKey]) {
       label.textContent = 'Sent to ';
       const link = document.createElement('a');
@@ -90,6 +80,14 @@ chrome.storage.local.get(["lastToss"], (result) => {
     container.appendChild(meta);
   }
 });
+
+const settingsLink = document.getElementById("open-settings");
+if (settingsLink) {
+  settingsLink.addEventListener("click", (e) => {
+    e.preventDefault();
+    chrome.runtime.openOptionsPage();
+  });
+}
 
 function getTimeAgo(timestamp) {
   const seconds = Math.floor((Date.now() - timestamp) / 1000);

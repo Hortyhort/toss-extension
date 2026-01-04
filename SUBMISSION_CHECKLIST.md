@@ -2,10 +2,11 @@
 
 ## Listing
 - Short description fits 132 chars
-- Detailed description matches behavior (auto-send toggle, ChatGPT manual send)
+- Detailed description matches behavior (auto-send toggle, ChatGPT manual send, compare mode)
 - Category/Tags set
 - Privacy policy URL updated
 - GitHub link present
+- Site access disclosure updated (selection toolbar on all websites)
 
 ## Assets
 - 128x128 icon set in `icons/`

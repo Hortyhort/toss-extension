@@ -1,14 +1,14 @@
 // Content script that runs on LLM sites
 // Fills in the text and optionally submits
 
-// LLM URLs for tossing
-const LLM_URLS = {
-  claude: { name: "Claude", url: "https://claude.ai/new" },
-  chatgpt: { name: "ChatGPT", url: "https://chatgpt.com/" },
-  gemini: { name: "Gemini", url: "https://gemini.google.com/app" },
-  grok: { name: "Grok", url: "https://grok.com/" },
-  perplexity: { name: "Perplexity", url: "https://www.perplexity.ai/" }
-};
+function getLLMKeyFromHostname(hostname) {
+  if (hostname.includes("claude.ai")) return "claude";
+  if (hostname.includes("chat.openai.com") || hostname.includes("chatgpt.com")) return "chatgpt";
+  if (hostname.includes("gemini.google.com")) return "gemini";
+  if (hostname.includes("perplexity.ai")) return "perplexity";
+  if (hostname.includes("grok.com")) return "grok";
+  return null;
+}
 
 function getAutoSendSetting() {
   return new Promise((resolve) => {
@@ -21,16 +21,16 @@ function getAutoSendSetting() {
 // Set up copy button interception
 setupCopyButtonToss();
 
-// Listen for "do-toss" message from background script (for tab reuse)
+// Listen for "do-toss" and compare capture messages
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === "do-toss" && message.toss) {
+    handleToss(message.toss);
+  }
+
+  if (message.type === "compare-capture") {
     const hostname = window.location.hostname;
-    // Clear pending toss from storage since we're handling it now
-    chrome.storage.local.remove("pendingToss");
-    // Wait for page to be ready, then fill and submit
-    waitForInputReady(hostname).then(() => {
-      fillAndSubmit(hostname, message.toss.text);
-    });
+    const text = extractLastResponseText(hostname);
+    sendResponse({ text });
   }
 });
 
@@ -74,13 +74,17 @@ function waitForInputReady(hostname) {
     return; // No pending toss
   }
 
-  const { text } = response.toss;
+  await handleToss(response.toss);
+})();
+
+async function handleToss(tossData) {
   const hostname = window.location.hostname;
 
   // Wait for the page to be ready, then fill
   await waitForPageReady(hostname);
-  await fillAndSubmit(hostname, text);
-})();
+  await waitForInputReady(hostname);
+  await fillAndSubmit(hostname, tossData);
+}
 
 function waitForPageReady(hostname) {
   return new Promise((resolve) => {
@@ -192,8 +196,9 @@ function findSubmitButton(hostname) {
   return null;
 }
 
-async function fillAndSubmit(hostname, text) {
+async function fillAndSubmit(hostname, tossData) {
   const input = findInputElement(hostname);
+  const text = tossData.text;
 
   if (!input) {
     // Fallback: copy to clipboard
@@ -252,6 +257,9 @@ async function fillAndSubmit(hostname, text) {
   const autoSend = await getAutoSendSetting();
   if (!autoSend) {
     showNotification("Text filled - press Enter to send");
+    if (tossData.compareId) {
+      attemptCompareCapture(hostname, tossData);
+    }
     return;
   }
 
@@ -260,6 +268,9 @@ async function fillAndSubmit(hostname, text) {
   // ChatGPT: skip auto-submit entirely (causes blank responses)
   if (submitButton === "SKIP_SUBMIT") {
     showNotification("Text filled - press Enter to send");
+    if (tossData.compareId) {
+      attemptCompareCapture(hostname, tossData);
+    }
     return;
   }
 
@@ -279,6 +290,9 @@ async function fillAndSubmit(hostname, text) {
     await sleep(50);
     submitButton.click();
     showNotification("Sent!");
+    if (tossData.compareId) {
+      attemptCompareCapture(hostname, tossData);
+    }
   } else {
     // Try pressing Enter as fallback
     try {
@@ -319,6 +333,9 @@ async function fillAndSubmit(hostname, text) {
       }
 
       showNotification("Sent!");
+      if (tossData.compareId) {
+        attemptCompareCapture(hostname, tossData);
+      }
     } catch (e) {
       showNotification("Text filled - press Enter to send");
     }
@@ -369,6 +386,84 @@ function showNotification(message) {
     toast.style.transition = 'opacity 0.2s';
     setTimeout(() => toast.remove(), 200);
   }, 2000);
+}
+
+function clipText(text, maxLen = 8000) {
+  const trimmed = (text || "").trim();
+  if (trimmed.length <= maxLen) return trimmed;
+  return `${trimmed.slice(0, maxLen)}...`;
+}
+
+function extractFromLastCopyButton() {
+  const buttons = Array.from(document.querySelectorAll('button'));
+  const copyButtons = buttons.filter(isCopyButton);
+  const last = copyButtons[copyButtons.length - 1];
+  if (!last) return '';
+  return getContentForCopyButton(last);
+}
+
+function extractLastResponseText(hostname) {
+  const fromCopy = extractFromLastCopyButton();
+  if (fromCopy) return clipText(fromCopy);
+
+  let text = '';
+
+  if (hostname.includes("chat.openai.com") || hostname.includes("chatgpt.com")) {
+    const nodes = document.querySelectorAll('[data-message-author-role="assistant"]');
+    text = nodes.length ? nodes[nodes.length - 1].textContent?.trim() || '' : '';
+  } else if (hostname.includes("claude.ai")) {
+    const nodes = document.querySelectorAll('[data-testid="conversation-turn"]');
+    const last = nodes.length ? nodes[nodes.length - 1] : null;
+    text = last?.querySelector('[class*="markdown"], [class*="prose"], [data-testid="message-content"]')?.textContent?.trim() || '';
+  } else if (hostname.includes("gemini.google.com")) {
+    const nodes = document.querySelectorAll('main [data-response-id], main .model-response, main .response-container, main article');
+    const last = nodes.length ? nodes[nodes.length - 1] : null;
+    text = last?.textContent?.trim() || '';
+  } else if (hostname.includes("perplexity.ai")) {
+    const nodes = document.querySelectorAll('main [data-testid="answer"], main [class*="answer"], main article');
+    const last = nodes.length ? nodes[nodes.length - 1] : null;
+    text = last?.textContent?.trim() || '';
+  } else if (hostname.includes("grok.com")) {
+    const nodes = document.querySelectorAll('[data-message-author-role="assistant"], main article, main [class*="message"]');
+    const last = nodes.length ? nodes[nodes.length - 1] : null;
+    text = last?.textContent?.trim() || '';
+  }
+
+  if (!text) {
+    const main = document.querySelector('main');
+    text = main?.textContent?.trim() || '';
+  }
+
+  return clipText(text);
+}
+
+async function waitForNewResponse(hostname, previousText) {
+  const maxWait = 90000;
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < maxWait) {
+    const current = extractLastResponseText(hostname);
+    if (current && current !== previousText) {
+      return current;
+    }
+    await sleep(1500);
+  }
+
+  return null;
+}
+
+async function attemptCompareCapture(hostname, tossData) {
+  if (!tossData.compareId || !tossData.llm) return;
+  const before = extractLastResponseText(hostname);
+  const text = await waitForNewResponse(hostname, before);
+  if (text) {
+    chrome.runtime.sendMessage({
+      type: "compare-response",
+      id: tossData.compareId,
+      llmKey: tossData.llm,
+      text
+    });
+  }
 }
 
 // Get the content associated with a copy button
@@ -438,7 +533,7 @@ function getContentForCopyButton(button) {
 }
 
 // Show toss menu near the button
-function showTossMenu(button, content) {
+async function showTossMenu(button, content) {
   // Remove any existing menu
   document.querySelectorAll('.toss-menu').forEach(m => m.remove());
 
@@ -460,13 +555,50 @@ function showTossMenu(button, content) {
 
   // Get current site to exclude from menu
   const hostname = window.location.hostname;
+  const currentKey = getLLMKeyFromHostname(hostname);
 
-  Object.entries(LLM_URLS).forEach(([key, llm]) => {
-    // Skip current site
-    if (hostname.includes(key) ||
-        (key === 'chatgpt' && (hostname.includes('openai') || hostname.includes('chatgpt')))) {
-      return;
-    }
+  const store = await chrome.storage.local.get({ activeCompareId: null, compareSessions: {} });
+  const activeSession = store.activeCompareId ? store.compareSessions[store.activeCompareId] : null;
+  const canAddToCompare = activeSession && currentKey && activeSession.llms?.includes(currentKey);
+
+  if (canAddToCompare) {
+    const compareItem = document.createElement('button');
+    compareItem.textContent = 'Add to Compare';
+    compareItem.style.cssText = `
+      display: block;
+      width: 100%;
+      padding: 8px 12px;
+      background: transparent;
+      border: none;
+      color: #fafafa;
+      font-size: 13px;
+      text-align: left;
+      cursor: pointer;
+      border-radius: 4px;
+      white-space: nowrap;
+    `;
+    compareItem.addEventListener('mouseenter', () => {
+      compareItem.style.background = 'linear-gradient(135deg, rgba(139,92,246,0.2), rgba(6,182,212,0.2))';
+    });
+    compareItem.addEventListener('mouseleave', () => {
+      compareItem.style.background = 'transparent';
+    });
+    compareItem.addEventListener('click', (e) => {
+      e.stopPropagation();
+      menu.remove();
+      chrome.runtime.sendMessage({
+        type: "compare-add",
+        id: activeSession.id,
+        llmKey: currentKey,
+        text: content
+      });
+      showNotification("Added to compare");
+    });
+    menu.appendChild(compareItem);
+  }
+
+  Object.entries(LLM_DEFS).forEach(([key, llm]) => {
+    if (key === currentKey) return;
 
     const item = document.createElement('button');
     item.textContent = `Toss to ${llm.name}`;
@@ -489,26 +621,18 @@ function showTossMenu(button, content) {
     item.addEventListener('mouseleave', () => {
       item.style.background = 'transparent';
     });
-    item.addEventListener('click', async (e) => {
+    item.addEventListener('click', (e) => {
       e.stopPropagation();
       menu.remove();
-
-      // Store the toss data and open via background script (reuses existing tabs)
-      await chrome.storage.local.set({
-        pendingToss: {
+      chrome.runtime.sendMessage({
+        type: "toss-send",
+        toss: {
           text: content,
-          llm: key,
-          timestamp: Date.now()
-        },
-        lastToss: {
-          text: content.substring(0, 100) + (content.length > 100 ? "..." : ""),
-          llm: llm.name,
-          timestamp: Date.now()
+          llmKey: key,
+          templateKey: "none",
+          source: "copy-menu"
         }
       });
-
-      // Ask background script to open (reuses existing tabs)
-      chrome.runtime.sendMessage({ type: "open-llm", url: llm.url });
     });
     menu.appendChild(item);
   });
