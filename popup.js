@@ -28,6 +28,18 @@ document.querySelectorAll(".llm-button").forEach(button => {
   });
 });
 
+// Auto-send toggle
+const autoSendToggle = document.getElementById("auto-send-toggle");
+if (autoSendToggle) {
+  chrome.storage.local.get({ autoSend: true }, (result) => {
+    autoSendToggle.checked = result.autoSend !== false;
+  });
+
+  autoSendToggle.addEventListener("change", () => {
+    chrome.storage.local.set({ autoSend: autoSendToggle.checked });
+  });
+}
+
 // Load and display last toss
 chrome.storage.local.get(["lastToss"], (result) => {
   const lastToss = result.lastToss;

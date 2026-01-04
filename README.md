@@ -14,7 +14,7 @@ Send selected text to any LLM in one click. No more copy-paste-tab-paste-enter.
 - **5 LLMs supported** - Claude, ChatGPT, Gemini, Grok, Perplexity
 - **Prompt templates** - Summarize, ELI5, Translate, Improve writing, Explain code, Fix errors
 - **Keyboard shortcuts** - Toss instantly without touching your mouse
-- **Auto-paste & auto-send** - Opens the LLM with your text already submitted
+- **Auto-fill & optional auto-send** - Fills the LLM input; auto-send where supported
 
 ## Installation
 
@@ -33,7 +33,7 @@ Send selected text to any LLM in one click. No more copy-paste-tab-paste-enter.
 ### Right-Click Menu
 1. Select any text on any webpage
 2. Right-click → "Toss to..." → Choose LLM → Choose template
-3. Text is pasted and sent automatically
+3. Text is pasted; if auto-send is on, it submits where supported (ChatGPT requires Enter)
 
 ### Keyboard Shortcuts
 | Shortcut | LLM |
@@ -44,6 +44,8 @@ Send selected text to any LLM in one click. No more copy-paste-tab-paste-enter.
 | `Cmd/Ctrl+Shift+X` | Grok |
 
 Set a custom shortcut for Perplexity at `chrome://extensions/shortcuts`
+
+Toggle auto-send from the extension popup.
 
 ### Prompt Templates
 | Template | Prefix |
@@ -58,9 +60,9 @@ Set a custom shortcut for Perplexity at `chrome://extensions/shortcuts`
 
 ## Privacy
 
-- All data stays in your browser
-- Nothing is sent to external servers
-- Only stores your last toss locally (for the popup display)
+- Toss does not send data to its own servers
+- Selected text is sent directly to the LLM you choose
+- Stores your last toss and auto-send preference locally (for the popup display)
 
 See [PRIVACY_POLICY.md](PRIVACY_POLICY.md) for details.
 
@@ -71,13 +73,14 @@ See [PRIVACY_POLICY.md](PRIVACY_POLICY.md) for details.
 | `contextMenus` | Right-click "Toss to..." menu |
 | `storage` | Remember last toss locally |
 | `scripting` | Paste and send text on LLM sites |
+| `activeTab` | Read selected text for keyboard shortcuts |
 | Host permissions | Access Claude, ChatGPT, Gemini, Grok, Perplexity |
 
 ## Development
 
 ```bash
 # Clone the repo
-git clone https://github.com/YOUR_USERNAME/toss-extension.git
+git clone https://github.com/Hortyhort/toss-extension.git
 
 # Load in Chrome
 # 1. Go to chrome://extensions

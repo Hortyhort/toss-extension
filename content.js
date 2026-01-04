@@ -10,6 +10,14 @@ const LLM_URLS = {
   perplexity: { name: "Perplexity", url: "https://www.perplexity.ai/" }
 };
 
+function getAutoSendSetting() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get({ autoSend: true }, (result) => {
+      resolve(result.autoSend !== false);
+    });
+  });
+}
+
 // Set up copy button interception
 setupCopyButtonToss();
 
@@ -240,6 +248,12 @@ async function fillAndSubmit(hostname, text) {
 
   // Delay to let React/frameworks process the input
   await sleep(300);
+
+  const autoSend = await getAutoSendSetting();
+  if (!autoSend) {
+    showNotification("Text filled - press Enter to send");
+    return;
+  }
 
   let submitButton = findSubmitButton(hostname);
 

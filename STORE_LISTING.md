@@ -10,7 +10,7 @@ HOW IT WORKS
 1. Select any text on any webpage
 2. Right-click and choose "Toss to..."
 3. Pick your LLM and prompt template
-4. Text is automatically pasted and sent
+4. Text is pasted; if auto-send is on, it submits where supported (ChatGPT requires Enter)
 
 SUPPORTED LLMs
 - Claude
@@ -34,11 +34,13 @@ KEYBOARD SHORTCUTS
 - Cmd/Ctrl+Shift+G → Gemini
 - Cmd/Ctrl+Shift+X → Grok
 - Set your own for Perplexity in chrome://extensions/shortcuts
+- Toggle auto-send from the extension popup
 
 PRIVACY
-- All data stays in your browser
-- Nothing is sent to external servers
-- Open source: [GitHub link]
+- Toss does not send data to its own servers
+- Selected text is sent directly to the LLM you choose
+- Privacy policy: https://github.com/Hortyhort/toss-extension/blob/main/PRIVACY_POLICY.md
+- Open source: https://github.com/Hortyhort/toss-extension
 
 Perfect for researchers, developers, writers, and anyone who uses multiple AI assistants.
 
