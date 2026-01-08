@@ -3,3 +3,13 @@
 node_modules/
 .idea/
 *.log
+
+# Plasmo & Build Artifacts
+build/
+.plasmo/
+.cache/
+.parcel-cache/
+dist/
+.env
+.turbo/
+

@@ -17,6 +17,10 @@ const customStatusEl = document.getElementById("custom-status");
 const compareTargetsEl = document.getElementById("compare-targets");
 const compareStatusEl = document.getElementById("compare-status");
 
+const notionTokenEl = document.getElementById("notion-token");
+const notionPageIdEl = document.getElementById("notion-page-id");
+const notionStatusEl = document.getElementById("notion-status");
+
 let settings = null;
 
 function normalizeSettings(raw) {
@@ -42,7 +46,10 @@ function persistSettings() {
     activePacks: settings.activePacks,
     customPacks: settings.customPacks,
     activeCustomPacks: settings.activeCustomPacks,
-    compareTargets: settings.compareTargets
+    activeCustomPacks: settings.activeCustomPacks,
+    compareTargets: settings.compareTargets,
+    notionToken: settings.notionToken,
+    notionPageId: settings.notionPageId
   });
 }
 
@@ -182,29 +189,46 @@ function renderCustomTemplates() {
   if (entries.length === 0) {
     const empty = document.createElement("div");
     empty.className = "status";
-    empty.textContent = "No custom templates yet.";
+    empty.textContent = "No directives created yet.";
     customTemplatesEl.appendChild(empty);
     return;
   }
 
   entries.forEach(([key, template]) => {
-    const row = document.createElement("div");
-    row.className = "custom-item";
+    const card = document.createElement("div");
+    card.className = "directive-card";
 
-    const label = document.createElement("span");
-    label.textContent = `${template.name} (${key})`;
+    const header = document.createElement("div");
+    header.className = "directive-header";
 
-    const removeBtn = document.createElement("button");
-    removeBtn.textContent = "Delete";
-    removeBtn.addEventListener("click", () => {
-      delete pack.templates[key];
-      persistSettings();
-      renderCustomTemplates();
+    const nameEl = document.createElement("div");
+    nameEl.className = "directive-name";
+    nameEl.textContent = template.name;
+
+    const delBtn = document.createElement("button");
+    delBtn.textContent = "×";
+    delBtn.style.padding = "2px 6px";
+    delBtn.style.fontSize = "14px";
+    delBtn.style.lineHeight = "1";
+    delBtn.title = "Delete Directive";
+    delBtn.addEventListener("click", () => {
+      if (confirm(`Delete "${template.name}"?`)) {
+        delete pack.templates[key];
+        persistSettings();
+        renderCustomTemplates();
+      }
     });
 
-    row.appendChild(label);
-    row.appendChild(removeBtn);
-    customTemplatesEl.appendChild(row);
+    header.appendChild(nameEl);
+    header.appendChild(delBtn);
+
+    const preview = document.createElement("div");
+    preview.className = "directive-preview";
+    preview.textContent = template.prefix;
+
+    card.appendChild(header);
+    card.appendChild(preview);
+    customTemplatesEl.appendChild(card);
   });
 }
 
@@ -244,11 +268,18 @@ function renderCompareTargets() {
   });
 }
 
+function renderNotion() {
+  notionTokenEl.value = settings.notionToken || "";
+  notionPageIdEl.value = settings.notionPageId || "";
+}
+
 function renderAll() {
   renderRouting();
   renderPacks();
+  renderPacks();
   renderCustomTemplates();
   renderCompareTargets();
+  renderNotion();
 }
 
 routingProfileEl.addEventListener("change", () => {
@@ -330,6 +361,16 @@ importCustomBtn.addEventListener("click", () => {
   } catch {
     customStatusEl.textContent = "Could not parse JSON.";
   }
+});
+
+notionTokenEl.addEventListener("input", () => {
+  settings.notionToken = notionTokenEl.value.trim();
+  persistSettings();
+});
+
+notionPageIdEl.addEventListener("input", () => {
+  settings.notionPageId = notionPageIdEl.value.trim();
+  persistSettings();
 });
 
 chrome.storage.local.get(DEFAULT_SETTINGS, (data) => {

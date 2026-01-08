@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Toss",
-  "description": "Send selected text to any LLM in one click",
+  "name": "Toss Pro: AI Context Bridge",
+  "description": "Highlight text and 'Toss' it to ChatGPT, Claude, or Notion. Includes Search Context enrichment and Compare Mode.",
   "version": "1.5.0",
   "permissions": ["contextMenus", "storage", "scripting", "activeTab"],
   "host_permissions": [
@@ -10,7 +10,9 @@
     "https://chatgpt.com/*",
     "https://gemini.google.com/*",
     "https://www.perplexity.ai/*",
-    "https://grok.com/*"
+    "https://grok.com/*",
+    "https://www.google.com/*",
+    "https://api.notion.com/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -27,6 +29,10 @@
       ],
       "js": ["shared.js", "content.js"],
       "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://www.google.com/search*"],
+      "js": ["shared.js", "search_scraper.js"]
     },
     {
       "matches": ["<all_urls>"],

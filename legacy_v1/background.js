@@ -2,6 +2,7 @@ importScripts("shared.js");
 
 const STORAGE_DEFAULTS = {
   pendingTossByTab: {},
+  pendingSearchToss: {}, // keyed by tabId of the search tab
   compareSessions: {},
   activeCompareId: null
 };
@@ -197,7 +198,13 @@ function queueRebuild() {
   rebuildTimer = setTimeout(() => rebuildContextMenus(), 150);
 }
 
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === "install") {
+    // Open welcome page on first install
+    chrome.tabs.create({ url: "welcome.html" });
+  }
+
+  // Ensure default settings
   chrome.storage.local.get(DEFAULT_SETTINGS, (settings) => {
     chrome.storage.local.set({ ...DEFAULT_SETTINGS, ...settings });
   });
@@ -325,6 +332,107 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       session.responses[message.llmKey] = { text: message.text, capturedAt: Date.now(), source: "manual" };
       return session;
     });
+  }
+
+  if (message.type === "toss-google-search") {
+    (async () => {
+      const query = encodeURIComponent(message.text);
+      const url = `https://www.google.com/search?q=${query}&toss_active=true`;
+      
+      const tab = await chrome.tabs.create({ url, active: false });
+      const store = await chrome.storage.local.get(STORAGE_DEFAULTS);
+      
+      store.pendingSearchToss[tab.id] = {
+        originalText: message.text,
+        llmKey: message.llmKey || "claude",
+        templateKey: message.templateKey || "none",
+        timestamp: Date.now()
+      };
+      await chrome.storage.local.set({ pendingSearchToss: store.pendingSearchToss });
+    })();
+    return;
+  }
+
+  if (message.type === "search-results") {
+    (async () => {
+      const tabId = sender.tab.id;
+      const store = await chrome.storage.local.get(STORAGE_DEFAULTS);
+      const pending = store.pendingSearchToss[tabId];
+      
+      if (!pending) return;
+
+      const searchContext = message.results.map(r => `[${r.title}](${r.url}): ${r.snippet}`).join("\n\n");
+      const enhancedText = `Context from Google Search:\n${searchContext}\n\nOriginal Query/Text:\n${pending.originalText}`;
+
+      await sendToss({
+        text: enhancedText,
+        llmKey: pending.llmKey,
+        templateKey: pending.templateKey,
+        source: "google-search"
+      });
+
+      delete store.pendingSearchToss[tabId];
+      await chrome.storage.local.set({ pendingSearchToss: store.pendingSearchToss });
+      chrome.tabs.remove(tabId);
+    })();
+  }
+
+  if (message.type === "toss-notion") {
+    (async () => {
+      const settings = await chrome.storage.local.get(DEFAULT_SETTINGS);
+      const token = settings.notionToken;
+      const pageId = settings.notionPageId;
+
+      if (!token || !pageId) {
+        console.warn("Toss: Notion token or page ID missing");
+        if (sender.tab?.id) {
+           chrome.tabs.sendMessage(sender.tab.id, { type: "toss-toast", text: "Missing Notion Token/ID", level: "error" });
+        }
+        return;
+      }
+
+      try {
+        const response = await fetch(`https://api.notion.com/v1/blocks/${pageId}/children`, {
+          method: "PATCH",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+            "Notion-Version": NOTION_API_VERSION
+          },
+          body: JSON.stringify({
+            children: [
+              {
+                object: "block",
+                type: "heading_3",
+                heading_3: { rich_text: [{ text: { content: `Tossed at ${new Date().toLocaleTimeString()}` } }] }
+              },
+              {
+                object: "block",
+                type: "quote",
+                quote: { rich_text: [{ text: { content: message.text } }] }
+              },
+              {
+                object: "block",
+                type: "paragraph",
+                paragraph: { rich_text: [{ text: { content: `Source: ${sender.tab?.url || "Unknown"}` } }] }
+              }
+            ]
+          })
+        });
+
+        if (!response.ok) {
+           const err = await response.text();
+           console.error("Toss: Notion API Error", err);
+           chrome.tabs.sendMessage(sender.tab.id, { type: "toss-toast", text: "Notion Save Failed", level: "error" });
+        } else {
+           console.log("Toss: Saved to Notion successfully");
+           chrome.tabs.sendMessage(sender.tab.id, { type: "toss-toast", text: "Saved to Notion", level: "success" });
+        }
+      } catch (e) {
+        console.error("Toss: Notion Network Error", e);
+        chrome.tabs.sendMessage(sender.tab.id, { type: "toss-toast", text: "Network Error", level: "error" });
+      }
+    })();
   }
 });
 

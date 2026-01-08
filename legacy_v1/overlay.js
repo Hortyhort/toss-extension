@@ -119,6 +119,31 @@ function createOverlay() {
       display: block;
       margin-top: 2px;
     }
+    .toss-toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 2147483648;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+    .toss-toast.visible {
+      opacity: 1;
+    }
+    .toss-toast.error {
+      background: #ef4444;
+    }
+    .toss-toast.success {
+      background: #22c55e;
+    }
   `;
 
   toolbarEl = document.createElement("div");
@@ -134,7 +159,24 @@ function createOverlay() {
   paletteBtn.textContent = "More";
   paletteBtn.addEventListener("click", () => openPalette());
 
+  const googleBtn = document.createElement("button");
+  googleBtn.className = "toss-button secondary";
+  googleBtn.textContent = "G+ Toss";
+  googleBtn.style.background = "linear-gradient(135deg, #EA4335, #4285F4)";
+  googleBtn.style.color = "#fff";
+  googleBtn.style.border = "none";
+  googleBtn.title = "Search Context + Toss";
+  googleBtn.addEventListener("click", () => sendGoogleSearch());
+
+  const notionBtn = document.createElement("button");
+  notionBtn.className = "toss-button secondary";
+  notionBtn.textContent = "Notion";
+  notionBtn.style.marginLeft = "4px";
+  notionBtn.addEventListener("click", () => sendNotion());
+
   toolbarEl.appendChild(quickBtn);
+  toolbarEl.appendChild(googleBtn);
+  toolbarEl.appendChild(notionBtn);
   toolbarEl.appendChild(paletteBtn);
 
   paletteEl = document.createElement("div");
@@ -436,6 +478,48 @@ function scheduleSelectionUpdate() {
   selectionTimer = setTimeout(updateSelection, 120);
 }
 
+function showToast(message, type = "info") {
+  if (!overlayRoot) return;
+  const toast = document.createElement("div");
+  toast.className = `toss-toast ${type} visible`;
+  toast.textContent = message;
+  
+  overlayRoot.shadowRoot.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.remove("visible");
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+async function sendGoogleSearch() {
+  if (!overlayState.selectionText) return;
+  
+  const settings = await getSettings();
+  const last = await chrome.storage.local.get({ lastToss: null });
+  const targetLlm = last.lastToss?.llmKey || "claude";
+
+  chrome.runtime.sendMessage({
+    type: "toss-google-search",
+    text: overlayState.selectionText,
+    llmKey: targetLlm,
+    templateKey: "google_search" 
+  });
+  
+  hideToolbar();
+}
+
+function sendNotion() {
+  if (!overlayState.selectionText) return;
+  
+  chrome.runtime.sendMessage({
+    type: "toss-notion",
+    text: overlayState.selectionText
+  });
+  
+  hideToolbar();
+}
+
 createOverlay();
 
 buildActions().then(() => refreshPalette());
@@ -450,6 +534,10 @@ chrome.storage.onChanged.addListener((changes, area) => {
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === "open-palette") {
     openPalette();
+  }
+  if (message.type === "toss-toast") {
+    createOverlay(); // Ensure root exists
+    showToast(message.text, message.level);
   }
 });
 
