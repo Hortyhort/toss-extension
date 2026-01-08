@@ -1,11 +1,10 @@
 {
-  "extends": "plasmo/tsconfig.json",
   "compilerOptions": {
-    "paths": {
-      "~*": [
-        "./src/*"
-      ]
-    },
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
     "baseUrl": "."
   },
   "include": [

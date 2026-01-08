@@ -2,8 +2,8 @@ import { Storage } from "@plasmohq/storage"
 import { useStorage } from "@plasmohq/storage/hook"
 import { useState } from "react"
 
-import "./src/style.css"
-import { STORAGE_KEYS, type PromptTemplate, type UserProfile } from "./src/shared"
+import "./style.css"
+import { STORAGE_KEYS, type PromptTemplate, type UserProfile } from "./shared"
 import { TrashIcon, PlusIcon, PencilIcon } from "@heroicons/react/24/outline"
 
 function IndexPopup() {

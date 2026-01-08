@@ -1,10 +1,10 @@
 import { useStorage } from "@plasmohq/storage/hook"
-import { Spinner } from "./src/components/Spinner"
+import { Spinner } from "./components/Spinner"
 import { ClipboardIcon, ArrowPathIcon } from "@heroicons/react/24/outline"
-import type { CompareSession, LLMKey } from "./src/types"
-import "./src/style.css"
+import type { CompareSession, LLMKey } from "./types"
+import "./style.css"
 
-import { ErrorBoundary } from "./src/components/ErrorBoundary"
+import { ErrorBoundary } from "./components/ErrorBoundary"
 
 function SidePanel() {
   const [session, setSession] = useStorage<CompareSession>("active_compare_session", null)
