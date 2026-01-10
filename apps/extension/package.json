@@ -1,7 +1,7 @@
 {
   "name": "toss-extension",
   "displayName": "Toss Pro",
-  "version": "2.0.0",
+  "version": "2.5.1",
   "description": "AI Context Bridge",
   "author": "Toss Team",
   "scripts": {
@@ -30,20 +30,22 @@
   },
   "manifest": {
     "host_permissions": [
+      "http://localhost:3000/*",
+      "http://127.0.0.1:3000/*",
       "https://www.google.com/search*",
       "https://claude.ai/*",
       "https://chat.openai.com/*",
-      "https://chatgpt.com/*",
-      "https://api.notion.com/*"
+      "https://chatgpt.com/*"
     ],
     "permissions": [
       "activeTab",
+      "contextMenus",
       "storage",
       "sidePanel",
       "identity"
     ],
     "content_security_policy": {
-      "extension_pages": "script-src 'self'; object-src 'none'; style-src 'self' 'unsafe-inline'; connect-src 'self' https://api.notion.com"
+      "extension_pages": "script-src 'self'; object-src 'none'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://localhost:3000 http://127.0.0.1:3000"
     }
   }
 }

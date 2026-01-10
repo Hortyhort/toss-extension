@@ -43,7 +43,7 @@ if (isTossActive) {
   const attemptSend = (): boolean => {
     const data = scrapeResults()
     if (data.length > 0) {
-      console.log("Toss Pro: Scraped results", data)
+      console.log("Toss Pro: Scraped results", data.length)
       chrome.runtime.sendMessage({
         type: "search-results",
         results: data

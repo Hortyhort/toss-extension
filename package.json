@@ -7,9 +7,11 @@
   ],
   "scripts": {
     "dev:backend": "npm run dev --workspace=apps/backend",
-    "dev:extension": "npm run dev --workspace=apps/extension"
+    "dev:extension": "npm run dev --workspace=apps/extension",
+    "verify:extension": "bash scripts/verify-extension.sh"
   },
   "devDependencies": {
+    "jsdom": "^27.4.0",
     "vitest": "^4.0.16"
   },
   "dependencies": {

@@ -5,7 +5,7 @@ export interface TossTemplate {
   category?: "coding" | "writing" | "other"
 }
 
-export type LLMKey = "claude" | "chatgpt" | "gemini"
+export type LLMKey = "claude" | "chatgpt"
 
 export interface RoutingProfile {
   id: string

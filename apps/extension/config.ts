@@ -1,9 +1,9 @@
+export const BACKEND_BASE_URL = "http://localhost:3000"
+
 export const NOTION_CONFIG = {
-  // TODO: User must replace these with their own Integration credentials
+  // Public client ID; keep the client secret on the backend only.
   // Create at https://www.notion.so/my-integrations
   // Redirect URI should be: https://<your-extension-id>.chromiumapp.org/
   CLIENT_ID: "YOUR_NOTION_CLIENT_ID",
-  CLIENT_SECRET: "YOUR_NOTION_CLIENT_SECRET",
-  AUTH_URL: "https://api.notion.com/v1/oauth/authorize",
-  TOKEN_URL: "https://api.notion.com/v1/oauth/token"
+  AUTH_URL: "https://api.notion.com/v1/oauth/authorize"
 }
