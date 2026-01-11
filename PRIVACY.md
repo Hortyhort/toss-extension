@@ -1,27 +1,44 @@
-# Privacy Policy for Toss Pro
+# Privacy Policy for Toss
 
-**Last Updated:** January 7, 2026
+**Last updated:** January 10, 2026
 
-## 1. Data Collection & Storage
+Toss is a Chrome extension that allows users to take actions on text they explicitly select on a webpage.
 
-Toss Pro ("the Extension") is designed with a "Local-First" architecture.
+## Data Collection
 
-- **Local Storage**: All settings, including API keys (Notion tokens) and user preferences, are stored locally on your device using `chrome.storage.local`.
-- **No Remote Server**: We do not operate a backend server to store your data. We do not collect analytics, tracking data, or personal information.
+Toss does not collect, store, or sell personal data.
 
-## 2. Permissions & Usage
+The extension processes only text that the user explicitly selects and chooses to act on. Selected content is used transiently to perform the requested action and is not stored, tracked, or used for profiling.
 
-The Extension requests the following permissions to function:
+## Data Types
 
-- **Read/Write Access to Specific Sites**: `claude.ai`, `chatgpt.com`, `google.com`, `notion.com`. This is strictly used to inject your prompts (Toss) or scrape context (Search) at your explicit command.
-- **Identity**: Used solely to facilitate the OAuth login flow with Notion.
-- **Side Panel**: Used to display the Compare Mode interface.
+Toss does not collect:
 
-## 3. Third-Party Services
+- Personally identifiable information
+- Health information
+- Financial or payment information
+- Authentication credentials
+- Personal communications
+- Location data
+- Browsing history
+- User activity such as keystrokes or mouse movement
 
-- **AI Providers**: When you use the "Toss" or "Compare" features, the Extension interacts with third-party websites (Anthropic Claude, OpenAI ChatGPT) on your behalf. Your data is subject to the privacy policies of those respective services.
-- **Notion**: When you use "Save to Notion", data is sent directly to the Notion API via your authenticated credentials.
+## Data Usage
 
-## 4. Contact
+Any processing of selected text occurs solely to fulfill the user’s requested action. No data is accessed or processed without explicit user interaction.
 
-For questions or support, please open an issue on our GitHub repository.
+## Third-Party Services
+
+Optional integrations may require user authorization. These integrations are initiated only by the user and are not required to use the core functionality of the extension.
+
+## Data Retention
+
+Toss does not retain user data.
+
+## Changes
+
+This privacy policy may be updated as the extension evolves. Any changes will be reflected on this page.
+
+## Contact
+
+If you have questions about this privacy policy, you may contact the developer through the Chrome Web Store listing.
