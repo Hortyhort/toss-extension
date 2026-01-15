@@ -6,10 +6,11 @@ Toss Pro connects your browsing context directly to your AI tools (Claude, ChatG
 
 ## 🚀 Features
 
-- **Toss to LLM**: Instantly send selected text (or Google Search results) to Claude or ChatGPT with a single click.
-- **Compare Mode**: Run your prompt against multiple LLMs simultaneously in a side-by-side view.
-- **Search Context**: "Search + Toss" automatically scrapes Google results to provide grounded context for your AI queries.
-- **Save to Notion**: Clip content directly to your Notion databases with one click.
+- **Toss to LLM**: Instantly send selected text (or Google Search results) to Claude or ChatGPT with a right-click.
+- **Side-by-side**: Run your prompt against multiple LLMs simultaneously in a side-by-side view.
+- **Diff View**: See the differences between Claude and ChatGPT responses.
+- **Google Search**: Scrapes Google results to provide grounded context for your AI queries.
+- **Save to Notion**: Clip content directly to your Notion databases from the right-click menu.
 - **Privacy First**: 100% Client-side. Your keys and data stay on your machine.
 
 ## 🛠 Installation
@@ -23,7 +24,7 @@ Toss Pro connects your browsing context directly to your AI tools (Claude, ChatG
     ```
 3.  Start the development server:
     ```bash
-    pnpm dev --workspace=apps/extension
+    pnpm -C apps/extension dev
     ```
 4.  Open Chrome and navigate to `chrome://extensions`.
 5.  Enable "Developer mode" (top right).
@@ -33,7 +34,7 @@ Toss Pro connects your browsing context directly to your AI tools (Claude, ChatG
 
 1.  Run the build command:
     ```bash
-    pnpm build --workspace=apps/extension
+    pnpm -C apps/extension build
     ```
 2.  Load the `apps/extension/build/chrome-mv3-prod` folder in Chrome.
 
@@ -44,26 +45,54 @@ Toss Pro connects your browsing context directly to your AI tools (Claude, ChatG
 - Open the extension popup (click the Toss icon in toolbar).
 - Select your preferred "Default Target" (Claude or ChatGPT).
 
-### 2. Notion Integration
+### 2. Notion Integration (Secure Backend OAuth)
 
-- In the popup, click "Connect with Notion" to authorize via OAuth.
-- Alternatively, use "manual mode" to paste your Integration Secret and Page ID.
+- Update `apps/extension/config.ts` with your Notion **client ID** and `BACKEND_BASE_URL`.
+- Ensure the backend origin is included in `apps/extension/package.json` `host_permissions`.
+- Configure the backend env (tokens stay server-side):
+  - `NOTION_CLIENT_ID`, `NOTION_CLIENT_SECRET`
+  - `NOTION_TOKEN_ENC_KEY` (32-byte base64) + `NOTION_TOKEN_STORE_PATH`
+  - `NOTION_EXTENSION_REDIRECT_ORIGIN` (e.g., `https://<extension-id>.chromiumapp.org`)
+  - `CORS_ALLOWED_ORIGINS` (e.g., `chrome-extension://<extension-id>`)
+- See `apps/backend/.env.example` for a full template.
+- Start the backend: `pnpm dev:backend`
+- In the popup, click **Connect with Notion**, paste your Target Page ID, and click **Test Connection**.
+
+## ✅ Verification
+
+```bash
+pnpm verify:extension
+```
+
+This runs the extension unit tests and validates the local backend endpoint used for MCP calls.
+
+## 🔐 Security Review
+
+See `SECURITY_REVIEW.md` for the formal review checklist.
 
 ## 📖 Usage Guide
 
-**The Overlay**
-Select any text on a webpage to reveal the Toss Overlay:
+**Right-Click Menu**
+Select any text, right-click, and choose **Toss Pro**:
 
-- **Search (Magnifying Glass)**: Googles your selection, scrapes the results, and sends everything to your LLM.
-- **Compare (Stacked Squares)**: Opens a side panel to run your selection against both Claude and ChatGPT.
-- **Toss (Paper Plane)**: Sends selection directly to your default LLM.
-- **Notion (Book)**: Appends the selection to your configured Notion page.
+- **Toss**: Sends selection to the best model automatically.
+- **Google Search**: Scrapes results and sends the context to your LLM.
+- **Side-by-side**: Opens a side panel to run your selection against both Claude and ChatGPT.
+- **Notion**: Appends the selection to your configured Notion page.
 
 **The Side Panel**
 
-- Activated via "Compare Mode".
-- Shows real-time streaming responses from multiple models.
+- Activated via Side-by-side.
+- Shows real-time streaming responses from multiple models or a diff view.
 - Click the "Copy" icon to grab the best answer.
+
+**Appearance**
+
+- Choose Light, Dark, or System theme in the popup settings.
+
+**Diagnostics (Optional)**
+
+- Enable diagnostics in the popup to capture local-only logs for troubleshooting.
 
 ## 🤝 Contributing
 

@@ -1,46 +1,38 @@
 # Toss QA Checklist
 
-## Core Flows (All LLMs)
-- Right-click selection -> Toss to [LLM] -> Template -> text fills correctly
-- Existing tab reuse keeps conversation and fills input
-- New tab opens and fills input
+## Install/Load
+- Load unpacked from `apps/extension/build/chrome-mv3-prod`
+- Popup opens and renders welcome screen/settings without errors
 
-## Auto-Send Toggle
-- Auto-send ON: submits where supported (Claude/Gemini/Grok/Perplexity)
-- Auto-send ON: ChatGPT fills and shows "press Enter" toast
-- Auto-send OFF: fills only; shows "press Enter" toast
+## Popup / Settings
+- Welcome screen dismiss persists after reopening the popup
+- Default target (Claude/ChatGPT) toggle persists
+- Notion connection flow shows clear errors when misconfigured
+- Notion connection uses backend OAuth (no token stored in extension)
+- Notion Test Connection disabled until Page ID is 32 characters
+- Theme toggle updates popup styling (light/dark/system)
+- Diagnostics toggle records logs and clears properly
 
-## Keyboard Shortcuts (Active Tab)
-- Cmd/Ctrl+Shift+C/O/G/X on a non-LLM page with selected text
-- No selection -> no action
+## Context Menu
+- Selecting text shows Toss Pro actions in the right-click menu
+- Toss sends selection to preferred LLM
+- Google Search opens Google tab, scrapes results, and closes tab
+- Side-by-side starts session and opens side panel
+- Notion shows success or error toast
+- Enhancements appear under Advanced when configured
 
-## Quick-Action Toolbar
-- Select text -> toolbar appears near selection
-- Click Toss -> sends via recommended route
-- Click More -> opens command palette
-
-## Command Palette
-- Opens via toolbar and command shortcut
-- Search filters actions; Enter sends selection
-- Compare action opens compare session
-
-## Smart Routing
-- Profile set to Research/Developer/Writer changes recommended action
-- Custom rules apply only when profile is set to Custom
-
-## Prompt Packs
-- Toggle packs in settings -> templates appear in context menu + palette
-- Custom templates appear and can be deleted
+## LLM Injection
+- ChatGPT and Claude inputs receive text and auto-send
+- Fallback toast appears if injection fails
+- Clipboard contains selection after fallback
 
 ## Compare Mode
-- Compare session opens tabs + compare page
-- Capture response succeeds after LLM reply
-- Copy all responses works
+- Side panel shows active session with streaming responses
+- Copy response button works per model
+- Export JSON downloads correctly
+- Clear session resets the panel
+- Diff view renders once both responses are available
 
-## Copy Button Toss (Inside LLM Sites)
-- Click built-in "Copy" button -> Toss menu appears -> picks target LLM
-- Ensures content matches copied response (no button text)
-
-## Fallbacks
-- Input not found -> clipboard copy toast appears
-- Disabled input -> waits then fills once enabled
+## Cleanup/Resilience
+- Closing LLM tab clears pending toss state
+- Search session expires after 60 seconds if no results

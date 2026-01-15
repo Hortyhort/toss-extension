@@ -30,9 +30,28 @@ jobs:
       - name: Rebuild sharp (critical for native modules)
         run: pnpm rebuild sharp
 
+      - name: Run extension tests
+        run: pnpm vitest --config apps/extension/vitest.config.ts
+
+      - name: Build backend
+        run: pnpm -C apps/backend build
+
       - name: Build extension
-        run: pnpm build --zip
-        working-directory: apps/extension
+        run: pnpm -C apps/extension build
+
+      - name: Validate artifact size
+        run: |
+          FILE="apps/extension/build/chrome-mv3-prod.zip"
+          if [ ! -f "$FILE" ]; then
+            echo "Missing build artifact: $FILE"
+            exit 1
+          fi
+          SIZE=$(stat -c%s "$FILE")
+          echo "Artifact size: ${SIZE} bytes"
+          if [ "$SIZE" -gt 2097152 ]; then
+            echo "Artifact exceeds 2MB target"
+            exit 1
+          fi
 
       - name: Upload production zip
         uses: actions/upload-artifact@v4
